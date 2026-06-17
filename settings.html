@@ -56,7 +56,7 @@
     }
     .setting-row .hint {
       font-size: 10px;
-      color: #C79CB0;
+      color: #8B5E6B;
       margin-top: 2px;
     }
     .setting-row input[type="text"],
@@ -84,7 +84,7 @@
       padding: 10px 14px;
       margin: 8px 0;
       font-size: 11px;
-      color: #B07C92;
+      color: #7A4A5A;
       line-height: 1.6;
     }
     .bar-track { height: 6px; background: #FBD8E6; border-radius: 3px; margin-top: 6px; overflow: hidden; }
@@ -97,7 +97,7 @@
       background: #FFF0F6 center/cover no-repeat;
       border: 1.5px dashed #FFC4DD;
       display: flex; align-items: center; justify-content: center;
-      color: #C79CB0; font-size: 11px;
+      color: #8B5E6B; font-size: 11px;
     }
     .actions { display: flex; gap: 10px; margin-top: 22px; }
     .btn {
@@ -116,6 +116,7 @@
     .btn:hover { opacity: 0.92; }
     .btn:active { transform: translateY(2px); box-shadow: none; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn:focus-visible, .btn-mini:focus-visible { outline: 2px solid #FF6FA8; outline-offset: 3px; }
     .btn-primary { background: linear-gradient(135deg, #FF8FBE, #FF6FA8); }
     .btn-accent  { background: linear-gradient(135deg, #B79CFF, #9B7FF0); width: 100%; margin-top: 2px; }
     .btn-danger  { background: linear-gradient(135deg, #FF9A9A, #F47171); }
@@ -126,7 +127,10 @@
     }
     .btn-mini:hover { opacity: 0.9; }
     .btn-mini:active { transform: scale(0.95); }
-    .note { font-size: 10px; color: #C79CB0; margin-top: 10px; line-height: 1.5; }
+    .note { font-size: 10px; color: #8B5E6B; margin-top: 10px; line-height: 1.5; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>
@@ -239,7 +243,7 @@
     </div>
     <div class="setting-row">
       <label>API 地址</label>
-      <input type="text" id="llm-url" placeholder="http://localhost:11434">
+      <input type="url" id="llm-url" placeholder="http://localhost:11434">
     </div>
     <div class="setting-row">
       <label>API Key</label>
@@ -258,7 +262,7 @@
       <div id="llm-status-text">模型状态：检查中...</div>
       <div id="llm-download-progress" style="display:none;">
         <div class="bar-track"><div class="bar-fill" id="llm-progress-bar" style="width:0%;"></div></div>
-        <div id="llm-progress-text" style="font-size:10px;margin-top:4px;color:#C79CB0;">0%</div>
+        <div id="llm-progress-text" style="font-size:10px;margin-top:4px;color:#8B5E6B;">0%</div>
       </div>
     </div>
     <div class="note">推理超时 (&gt;10s) 自动降级为模板回复。<br>模型缓存路径：%APPDATA%/PixelPal/models/</div>

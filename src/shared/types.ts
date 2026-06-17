@@ -405,6 +405,9 @@ export const IPC_CHANNELS = {
   // ---- 设置窗口触发宠物动作（截图/录制）----
   PET_ACTION: 'pet:action',
 
+  // ---- 健康检查 ----
+  STORE_HEALTH: 'store:health',
+
   // Main → Renderer
   ON_PET_LOADED: 'on:pet-loaded',
   ON_SETTINGS_CHANGED: 'on:settings-changed',

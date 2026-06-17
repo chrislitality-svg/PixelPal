@@ -203,6 +203,7 @@ export class OnboardingSystem {
   private descEl: HTMLElement;
   private inputEl: HTMLInputElement;
   private btnEl: HTMLElement;
+  private skipBtn: HTMLElement;
 
   // State
   private step: OnboardingStep = 'hatch';
@@ -215,6 +216,7 @@ export class OnboardingSystem {
   // Bound handlers (for removal)
   private boundBtnClick: () => void;
   private boundInputKeydown: (e: KeyboardEvent) => void;
+  private boundSkipClick: () => void;
 
   constructor(onComplete: (name: string) => void) {
     this.overlay     = document.getElementById('onboarding-overlay')!;
@@ -224,10 +226,12 @@ export class OnboardingSystem {
     this.descEl      = document.getElementById('onb-desc')!;
     this.inputEl     = document.getElementById('onb-input') as HTMLInputElement;
     this.btnEl       = document.getElementById('onb-btn')!;
+    this.skipBtn     = document.getElementById('onb-skip')!;
     this.onComplete  = onComplete;
 
     this.boundBtnClick     = () => this.handleButtonClick();
     this.boundInputKeydown = (e: KeyboardEvent) => this.handleInputKeydown(e);
+    this.boundSkipClick    = () => this.complete();
   }
 
   // ------------------------------------------------------------------
@@ -245,6 +249,7 @@ export class OnboardingSystem {
 
     this.btnEl.addEventListener('click', this.boundBtnClick);
     this.inputEl.addEventListener('keydown', this.boundInputKeydown);
+    this.skipBtn.addEventListener('click', this.boundSkipClick);
 
     this.stepTo('hatch');
   }
@@ -262,6 +267,7 @@ export class OnboardingSystem {
 
     this.btnEl.removeEventListener('click', this.boundBtnClick);
     this.inputEl.removeEventListener('keydown', this.boundInputKeydown);
+    this.skipBtn.removeEventListener('click', this.boundSkipClick);
   }
 
   // ------------------------------------------------------------------

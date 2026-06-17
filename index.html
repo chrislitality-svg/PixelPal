@@ -11,9 +11,10 @@
       height: 100%;
       overflow: hidden;
       background: transparent;
-      user-select: none;
       -webkit-app-region: no-drag;
     }
+    /* scoped — only non-selectable interactive surfaces */
+    canvas, #context-menu, #bubble-container, #levelup-banner, #focus-indicator, #recording-indicator { user-select: none; }
     canvas#pet-canvas {
       position: absolute;
       bottom: 0;
@@ -90,17 +91,24 @@
     #context-menu::-webkit-scrollbar { width: 4px; }
     #context-menu::-webkit-scrollbar-thumb { background: #FFC4DD; border-radius: 2px; }
     #context-menu .menu-item {
+      display: block; width: 100%;
       padding: 6px 14px;
       cursor: pointer;
       color: #7A5468;
       border-radius: 9px;
       white-space: nowrap;
+      font-family: inherit; font-size: inherit;
+      border: none; background: none; text-align: left;
       transition: background 0.15s, color 0.15s, transform 0.1s;
     }
     #context-menu .menu-item:hover {
       background: #FFD9E9;
       color: #C13E78;
       transform: translateX(2px);
+    }
+    #context-menu .menu-item:focus-visible {
+      outline: 2px solid #FF6FA8;
+      outline-offset: 2px;
     }
     #context-menu .menu-item.danger { color: #D06A8E; }
     #context-menu .menu-item.danger:hover { background: #FFD2D2; color: #C0392B; }
@@ -142,7 +150,7 @@
     }
     #onboarding-card p {
       font-size: 12.5px;
-      color: #B07C92;
+      color: #7A4A5A;
       margin-bottom: 16px;
       line-height: 1.7;
     }
@@ -175,6 +183,7 @@
     }
     #onboarding-card button:hover { opacity: 0.92; }
     #onboarding-card button:active { transform: translateY(3px); box-shadow: none; }
+    #onboarding-card button:focus-visible { outline: 2px solid #FF6FA8; outline-offset: 3px; }
     .onb-progress {
       width: 100%;
       height: 9px;
@@ -195,7 +204,10 @@
       right: 0;
       font-size: 10px;
       font-family: 'Courier New', monospace;
-      color: rgba(150,150,150,0.6);
+      color: #665055;
+      background: rgba(255,255,255,0.75);
+      border-radius: 6px;
+      padding: 1px 8px;
       opacity: 0;
       transition: opacity 0.3s;
     }
@@ -247,6 +259,19 @@
       78%  { opacity: 1; transform: translateX(-50%) translateY(-20px) scale(1); }
       100% { opacity: 0; transform: translateX(-50%) translateY(-38px) scale(1); }
     }
+    .onb-skip {
+      position: absolute;
+      top: 8px; right: 12px;
+      font-size: 11px; color: #C79CB0; cursor: pointer;
+      background: none; border: none; font-family: inherit;
+    }
+    .onb-skip:hover { color: #C13E78; text-decoration: underline; }
+    .onb-skip:focus-visible { outline: 2px solid #FF6FA8; outline-offset: 2px; border-radius: 4px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      #recording-indicator { animation: none; }
+      .typewriter-cursor { animation: none; }
+    }
   </style>
 </head>
 <body>
@@ -256,37 +281,39 @@
     <div id="recording-indicator">● REC</div>
   </div>
 
-  <div id="bubble-container">
+  <div id="bubble-container" aria-live="polite" aria-atomic="true">
     <div class="bubble" id="bubble-text"></div>
   </div>
 
   <div id="levelup-banner"></div>
 
-  <div id="context-menu">
-    <div class="menu-item" data-action="feed">🍖 喂食</div>
-    <div class="menu-item" data-action="pet">✋ 摸头</div>
-    <div class="menu-item" data-action="joke">😜 讲个冷笑话</div>
-    <div class="menu-item" data-action="mischief">📂 搞个恶作剧</div>
-    <div class="menu-item" data-action="cleanpoop">🧹 清理便便</div>
-    <div class="menu-item" data-action="rest">😴 让它休息</div>
-    <div class="menu-sep"></div>
-    <div class="menu-item" data-action="work">🛠️ 打工赚钱</div>
-    <div class="menu-item" data-action="visit">🧑‍🤝‍🧑 叫朋友来玩</div>
-    <div class="menu-item" data-action="party">🎉 开个派对</div>
-    <div class="menu-item" data-action="shop">🛒 商店</div>
-    <div class="menu-item" data-action="gallery">📖 成就图鉴</div>
-    <div class="menu-item" data-action="report">📈 成长报告</div>
-    <div class="menu-item" data-action="status">📊 状态卡</div>
-    <div class="menu-item" data-action="settings">⚙️ 设置</div>
-    <div class="menu-sep"></div>
-    <div class="menu-item danger" data-action="killpet">🍃 放归大自然</div>
+  <div id="context-menu" role="menu" tabindex="-1">
+    <button type="button" role="menuitem" class="menu-item" data-action="feed" tabindex="-1">🍖 喂食</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="pet" tabindex="-1">✋ 摸头</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="joke" tabindex="-1">😜 讲个冷笑话</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="mischief" tabindex="-1">📂 搞个恶作剧</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="cleanpoop" tabindex="-1">🧹 清理便便</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="rest" tabindex="-1">😴 让它休息</button>
+    <hr role="separator" class="menu-sep">
+    <button type="button" role="menuitem" class="menu-item" data-action="work" tabindex="-1">🛠️ 打工赚钱</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="visit" tabindex="-1">🧑‍🤝‍🧑 叫朋友来玩</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="party" tabindex="-1">🎉 开个派对</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="shop" tabindex="-1">🛒 商店</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="gallery" tabindex="-1">📖 成就图鉴</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="report" tabindex="-1">📈 成长报告</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="status" tabindex="-1">📊 状态卡</button>
+    <button type="button" role="menuitem" class="menu-item" data-action="settings" tabindex="-1">⚙️ 设置</button>
+    <hr role="separator" class="menu-sep">
+    <button role="menuitem" class="menu-item danger" data-action="killpet" tabindex="-1">🍃 放归大自然</button>
   </div>
 
   <div id="onboarding-overlay">
-    <div id="onboarding-card">
+    <div id="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onb-title" aria-describedby="onb-desc">
+      <button type="button" class="onb-skip" id="onb-skip" aria-label="跳过引导">跳过</button>
       <div class="onb-progress"><div class="onb-progress-fill" id="onb-progress" style="width: 15%"></div></div>
       <h2 id="onb-title">一只小生物出现了！</h2>
       <p id="onb-desc">它从像素蛋里破壳而出，正睁大眼睛看着你。<br>给它起个名字吧？</p>
+      <label for="onb-input" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">宠物名字</label>
       <input type="text" id="onb-input" placeholder="输入名字..." maxlength="12" autocomplete="off">
       <br>
       <button id="onb-btn">确定</button>

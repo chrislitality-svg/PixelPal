@@ -38,7 +38,7 @@
       image-rendering: pixelated;
     }
     .pet-name { font-size: 26px; font-weight: 700; color: #C13E78; letter-spacing: 1px; }
-    .pet-subtitle { font-size: 12px; color: #D087A6; margin-top: 4px; }
+    .pet-subtitle { font-size: 12px; color: #9B5068; margin-top: 4px; }
     .temperament-chip {
       display: inline-block; margin-top: 8px;
       background: #FFF0F6; border: 1.5px solid #FFC4DD; border-radius: 14px;
@@ -54,6 +54,7 @@
     .gen-avatar-btn:hover { opacity: 0.92; }
     .gen-avatar-btn:active { transform: translateY(2px); box-shadow: none; }
     .gen-avatar-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .gen-avatar-btn:focus-visible { outline: 2px solid #FF6FA8; outline-offset: 3px; }
 
     /* ---- Sections ---- */
     .section {
@@ -73,7 +74,7 @@
     /* ---- Pet profile ---- */
     .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
     .profile-item { font-size: 12px; line-height: 1.6; color: #7A5468; }
-    .profile-item .label { color: #D087A6; font-size: 10px; display: block; margin-bottom: 1px; }
+    .profile-item .label { color: #9B5068; font-size: 10px; display: block; margin-bottom: 1px; }
     .profile-item .value { font-weight: 700; color: #6B4A5B; }
     .personality-row {
       grid-column: 1 / -1; margin-top: 6px; padding-top: 10px;
@@ -82,7 +83,7 @@
     .seed-badge {
       grid-column: 1 / -1; margin-top: 8px;
       background: #FFF0F6; border: 1px dashed #FFC4DD; border-radius: 10px;
-      padding: 6px 10px; font-size: 10.5px; color: #B07C92; line-height: 1.6;
+      padding: 6px 10px;       font-size: 10.5px; color: #7A4A5A; line-height: 1.6;
     }
     .seed-badge code { font-family: 'Courier New', monospace; color: #C13E78; }
 
@@ -96,7 +97,7 @@
     .need-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
     .need-name { font-size: 12px; color: #7A5468; font-weight: 700; display: flex; align-items: center; gap: 5px; }
     .need-name .icon { font-size: 14px; width: 18px; text-align: center; }
-    .need-val { font-size: 11px; color: #D087A6; font-family: 'Courier New', monospace; }
+    .need-val { font-size: 11px; color: #9B5068; font-family: 'Courier New', monospace; }
     .need-track { height: 9px; background: #FBD8E6; border-radius: 5px; overflow: hidden; }
     .need-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
     .need-hunger .need-fill { background: linear-gradient(90deg, #FFD37A, #FF9F4A); }
@@ -113,7 +114,7 @@
     .mood-badge .mood-icon { font-size: 16px; }
 
     /* ---- Empty state ---- */
-    .empty-state { text-align: center; padding: 60px 20px; color: #C79CB0; font-size: 14px; line-height: 2; }
+    .empty-state { text-align: center; padding: 60px 20px; color: #8B5E6B; font-size: 14px; line-height: 2; }
     .empty-state .empty-icon { font-size: 48px; opacity: 0.5; margin-bottom: 16px; }
 
     /* ---- Memories (回忆录) ---- */
@@ -124,15 +125,18 @@
     .memory-row:last-child { border-bottom: none; }
     .memory-dot { font-size: 14px; line-height: 1.4; }
     .memory-desc { font-size: 12.5px; color: #6B4A5B; line-height: 1.5; }
-    .memory-time { font-size: 10px; color: #C79CB0; margin-top: 1px; }
-    .memory-empty { font-size: 12px; color: #C79CB0; line-height: 1.8; }
+    .memory-time { font-size: 10px; color: #8B5E6B; margin-top: 1px; }
+    .memory-empty { font-size: 12px; color: #8B5E6B; line-height: 1.8; }
 
     /* ---- Footer ---- */
-    .card-footer { text-align: center; font-size: 10px; color: #D8B6C6; letter-spacing: 1px; margin-top: 8px; }
+    .card-footer { text-align: center; font-size: 10px; color: #9B7085; letter-spacing: 1px; margin-top: 8px; }
 
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #FFC4DD; border-radius: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>

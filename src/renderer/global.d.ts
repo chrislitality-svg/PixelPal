@@ -49,6 +49,7 @@ export interface PixelPalAPI {
   loadPet(): Promise<PetEntity>;
   savePet(pet: PetEntity): Promise<void>;
   deletePet(petId: string): Promise<boolean>;
+  storeHealth(): Promise<{ ok: boolean; error?: string }>;
 
   // ---- Needs & state ----
   updateNeeds(needs: Partial<PetNeeds>): Promise<void>;

@@ -107,6 +107,11 @@ const unsubscribers: Array<() => void> = [];
 document.addEventListener('DOMContentLoaded', () => {
   init().catch(err => {
     console.error('[PixelPal] Fatal initialization error:', err);
+    const el = document.getElementById('bubble-text');
+    if (el) {
+      el.textContent = '\u274C \u542F\u52A8\u5931\u8D25\uFF0C\u8BF7\u91CD\u542F\u7A0B\u5E8F';
+      document.getElementById('bubble-container')?.classList.add('visible');
+    }
   });
 });
 
@@ -138,6 +143,23 @@ async function init(): Promise<void> {
 
   // ---- (c) Check if pet exists, create or load ----
   let petData: PetEntity;
+
+  // Health check: ensure the database is accessible before proceeding
+  try {
+    const health = await window.pixelpal.storeHealth();
+    if (!health.ok) {
+      console.error('[PixelPal] Store unavailable:', health.error);
+      const el = document.getElementById('bubble-text');
+      if (el) {
+        el.textContent = '\u26A0\uFE0F \u6570\u636E\u5E93\u8FDE\u63A5\u5931\u8D25\uFF0C\u8BF7\u91CD\u542F\u7A0B\u5E8F';
+        document.getElementById('bubble-container')?.classList.add('visible');
+      }
+      return;
+    }
+  } catch {
+    // Fallback: if health check itself fails, proceed but log
+    console.warn('[PixelPal] Health check failed, proceeding anyway');
+  }
 
   const exists = await window.pixelpal.petExists();
 

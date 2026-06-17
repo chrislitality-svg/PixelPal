@@ -61,6 +61,7 @@ const IPC_CHANNELS = {
   ON_PET_ACTION: 'on:pet-action',
   ON_WORK_STATE: 'on:work-state',
   ON_WORLD_POOPS: 'on:world-poops',
+  STORE_HEALTH: 'store:health',
 };
 
 /**
@@ -75,11 +76,21 @@ const pixelpalApi = {
 
   /** Check whether a pet already exists in the database. */
   petExists: (): Promise<boolean> =>
-    ipcRenderer.invoke(IPC_CHANNELS.PET_EXISTS),
+    ipcRenderer.invoke(IPC_CHANNELS.PET_EXISTS).then((r: any) => {
+      if (typeof r === 'object' && 'exists' in r) return r.exists;
+      return r;
+    }),
 
   /** Load the active pet (with offline compensation applied). */
   loadPet: (): Promise<any> =>
-    ipcRenderer.invoke(IPC_CHANNELS.PET_LOAD),
+    ipcRenderer.invoke(IPC_CHANNELS.PET_LOAD).then((r: any) => {
+      if (typeof r === 'object' && 'pet' in r) return r.pet;
+      return r;
+    }),
+
+  /** Health check: returns { ok: boolean, error?: string }. */
+  storeHealth: (): Promise<{ ok: boolean; error?: string }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.STORE_HEALTH),
 
   /** Save (or update) the pet entity. Debounced on the main side. */
   savePet: (pet: any): Promise<void> =>

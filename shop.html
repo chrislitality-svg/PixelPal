@@ -46,7 +46,7 @@
     .item.equipped { border-color: #B79CFF; box-shadow: 0 3px 14px rgba(155,127,240,0.3); }
     .item .icon { font-size: 30px; line-height: 1; }
     .item .name { font-size: 14px; font-weight: 700; color: #5A3A4A; }
-    .item .desc { font-size: 10.5px; color: #B07C92; line-height: 1.5; min-height: 28px; }
+    .item .desc { font-size: 10.5px; color: #7A4A5A; line-height: 1.5; min-height: 28px; }
     .item .row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
     .item .price { font-size: 13px; font-weight: 700; color: #E0723C; }
     .buy-btn {
@@ -60,6 +60,7 @@
     .buy-btn.owned { background: linear-gradient(135deg, #B79CFF, #9B7FF0); }
     .buy-btn.equipped { background: #C8BCE8; }
     .buy-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .buy-btn:focus-visible { outline: 2px solid #FF6FA8; outline-offset: 2px; }
     .toast {
       position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
       background: #5A3A4A; color: #fff; padding: 9px 18px; border-radius: 18px;
@@ -67,7 +68,10 @@
       box-shadow: 0 6px 18px rgba(0,0,0,0.2);
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    .empty { text-align:center; color:#C79CB0; padding: 40px; }
+    .empty { text-align:center; color:#8B5E6B; padding: 40px; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>

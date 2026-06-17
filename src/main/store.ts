@@ -77,6 +77,14 @@ export class Store {
   private dbPath: string;
   private currentPetId: string | null = null;
 
+  /**
+   * Human-readable description of the last error encountered by a
+   * critical method (petExists, loadPet, savePetImmediate).
+   * Cleared at the start of each call.  IPC handlers can inspect
+   * this to distinguish "no data" from "data unavailable".
+   */
+  lastError: string | null = null;
+
   constructor() {
     const userDataPath = app.getPath('userData');
     this.dbPath = path.join(userDataPath, 'pixelpal.db');
@@ -114,13 +122,15 @@ export class Store {
   // ---- Public API: pets ----
 
   petExists(): boolean {
-    if (!this.db) return false;
+    this.lastError = null;
+    if (!this.db) { this.lastError = 'Database not initialized'; return false; }
     try {
       const row = this.db
         .prepare('SELECT COUNT(*) as count FROM pets')
         .get() as DatabaseRow;
       return (row?.count as number) > 0;
-    } catch {
+    } catch (err) {
+      this.lastError = `Database query failed: ${err}`;
       return false;
     }
   }
@@ -131,7 +141,8 @@ export class Store {
    * drift realistically while the app was closed.
    */
   loadPet(): PetEntity | null {
-    if (!this.db) return null;
+    this.lastError = null;
+    if (!this.db) { this.lastError = 'Database not initialized'; return null; }
 
     try {
       const row = this.db
@@ -152,6 +163,7 @@ export class Store {
 
       return compensated;
     } catch (err) {
+      this.lastError = `Failed to load pet: ${err}`;
       console.error('[Store] Failed to load pet:', err);
       return null;
     }

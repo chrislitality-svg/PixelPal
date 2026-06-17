@@ -25,7 +25,7 @@
       padding: 12px 8px; text-align: center; box-shadow: 0 3px 10px rgba(255,150,190,0.1);
     }
     .stat .v { font-size: 20px; font-weight: 800; color: #C13E78; }
-    .stat .l { font-size: 10.5px; color: #B07C92; margin-top: 3px; }
+    .stat .l { font-size: 10.5px; color: #7A4A5A; margin-top: 3px; }
 
     .section {
       background: rgba(255,255,255,0.72); border: 1.5px solid #FFD0E2; border-radius: 18px;
@@ -36,7 +36,10 @@
     .legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 10px; }
     .legend span { font-size: 11px; color: #7A5468; display: inline-flex; align-items: center; gap: 4px; }
     .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
-    .note { font-size: 11px; color: #C79CB0; margin-top: 8px; line-height: 1.5; }
+    .note { font-size: 11px; color: #8B5E6B; margin-top: 8px; line-height: 1.5; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>

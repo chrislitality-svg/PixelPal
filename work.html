@@ -31,7 +31,7 @@
     .active .row { display: flex; align-items: center; gap: 12px; }
     .active .ai { font-size: 40px; }
     .active .an { font-size: 16px; font-weight: 700; color: #C13E78; }
-    .active .as { font-size: 12px; color: #B07C92; }
+    .active .as { font-size: 12px; color: #7A4A5A; }
     .bar-track { height: 10px; background: #FFF; border-radius: 6px; margin-top: 12px; overflow: hidden; border: 1px solid #FFC4DD; }
     .bar-fill { height: 100%; background: linear-gradient(90deg, #FF8FBE, #FF6FA8); width: 0%; transition: width 0.9s linear; }
     .active .ctrl { display:flex; align-items:center; justify-content:space-between; margin-top: 10px; }
@@ -42,7 +42,7 @@
     }
     .collect-btn:disabled { background:#D8C8D0; cursor:not-allowed; }
 
-    .hint { font-size: 12px; color: #B07C92; margin: 2px 2px 12px; }
+    .hint { font-size: 12px; color: #7A4A5A; margin: 2px 2px 12px; }
     .cat-title { font-size: 13px; font-weight: 700; color: #D06A8E; margin: 14px 4px 8px; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .job {
@@ -52,7 +52,7 @@
     .job:hover { transform: translateY(-2px); }
     .job .ji { font-size: 26px; }
     .job .jn { font-size: 13px; font-weight: 700; color: #5A3A4A; }
-    .job .jd { font-size: 10px; color: #B07C92; min-height: 26px; line-height: 1.4; }
+    .job .jd { font-size: 10px; color: #7A4A5A; min-height: 26px; line-height: 1.4; }
     .job .jmeta { display:flex; justify-content:space-between; font-size: 11px; margin-top: 2px; }
     .job .jtime { color: #9B7FB0; }
     .job .jrew { color: #E0723C; font-weight: 700; }
@@ -60,12 +60,16 @@
       font-size:12px; font-weight:700; color:#fff; background: linear-gradient(135deg,#FF8FBE,#FF6FA8); cursor:pointer; }
     .work-btn:hover { opacity: 0.9; }
     .work-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .work-btn:focus-visible, .collect-btn:focus-visible { outline: 2px solid #FF6FA8; outline-offset: 2px; }
     .toast {
       position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
       background:#5A3A4A; color:#fff; padding:9px 18px; border-radius:18px; font-size:13px;
       opacity:0; transition:opacity .25s, transform .25s; pointer-events:none; box-shadow:0 6px 18px rgba(0,0,0,.2);
     }
     .toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
   </style>
 </head>
 <body>

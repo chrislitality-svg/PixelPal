@@ -121,11 +121,13 @@ export function registerIpcHandlers(deps: IpcDeps): void {
 
   // ---- Pet persistence ----
 
-  ipcMain.handle(IPC_CHANNELS.PET_EXISTS, (): boolean => {
-    return store.petExists();
+  ipcMain.handle(IPC_CHANNELS.PET_EXISTS, (): { exists: boolean; error?: string } => {
+    const exists = store.petExists();
+    if (store.lastError) return { exists, error: store.lastError };
+    return { exists };
   });
 
-  ipcMain.handle(IPC_CHANNELS.PET_LOAD, (): PetEntity | null => {
+  ipcMain.handle(IPC_CHANNELS.PET_LOAD, (): { pet: PetEntity | null; error?: string } => {
     const pet = store.loadPet();
     if (pet && petManager.isWindowAlive()) {
       petManager.setPetName(pet.name);
@@ -134,7 +136,8 @@ export function registerIpcHandlers(deps: IpcDeps): void {
     if (pet?.breed) store.addToCollection(pet.breed);
     // Record an attribute snapshot for the growth report (throttled).
     if (pet?.attributes) store.recordAttrSnapshot(pet.attributes);
-    return pet;
+    if (store.lastError) return { pet, error: store.lastError };
+    return { pet };
   });
 
   ipcMain.handle(
@@ -818,3 +821,13 @@ export function openPartyWindow(): void {
     });
   }
 }
+
+// ---- Health check (registered after main handlers) ----
+ipcMain.handle(IPC_CHANNELS.STORE_HEALTH, (): { ok: boolean; error?: string } => {
+  if (!depsRef) return { ok: false, error: 'Store not initialized yet' };
+  const { store } = depsRef;
+  store.lastError = null;
+  const exists = store.petExists();
+  if (store.lastError) return { ok: false, error: store.lastError };
+  return { ok: true };
+});
