@@ -37,5 +37,5 @@ files:
   - "!dist/*.7z"
 publish:
   provider: github
-  owner: pixelpal
+  owner: chrislitality-svg
   repo: PixelPal
