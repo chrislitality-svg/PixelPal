@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>可爱小宠物 · 商店</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Comic Sans MS', 'Segoe UI Rounded', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(165deg, #FFF6FB 0%, #FFEAF3 50%, #FCE4EF 100%);
+      color: #6B4A5B;
+      min-height: 100vh;
+      padding: 0 0 24px;
+    }
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, #FF8FBE, #FF6FA8);
+      color: #fff;
+      box-shadow: 0 3px 12px rgba(255,120,170,0.4);
+    }
+    .topbar .title { font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+    .coin-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,0.28);
+      border-radius: 16px; padding: 5px 14px; font-size: 15px; font-weight: 700;
+    }
+    .wrap { max-width: 460px; margin: 0 auto; padding: 16px 18px 0; }
+    .cat-title {
+      font-size: 13px; font-weight: 700; color: #D06A8E;
+      margin: 16px 4px 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .item {
+      background: rgba(255,255,255,0.78);
+      border: 1.5px solid #FFD0E2;
+      border-radius: 16px;
+      padding: 12px;
+      display: flex; flex-direction: column; gap: 4px;
+      box-shadow: 0 3px 12px rgba(255,150,190,0.12);
+      transition: transform 0.12s;
+    }
+    .item:hover { transform: translateY(-2px); }
+    .item.equipped { border-color: #B79CFF; box-shadow: 0 3px 14px rgba(155,127,240,0.3); }
+    .item .icon { font-size: 30px; line-height: 1; }
+    .item .name { font-size: 14px; font-weight: 700; color: #5A3A4A; }
+    .item .desc { font-size: 10.5px; color: #B07C92; line-height: 1.5; min-height: 28px; }
+    .item .row { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; }
+    .item .price { font-size: 13px; font-weight: 700; color: #E0723C; }
+    .buy-btn {
+      border: none; border-radius: 12px; padding: 6px 12px;
+      font-family: inherit; font-size: 12px; font-weight: 700; color: #fff; cursor: pointer;
+      background: linear-gradient(135deg, #FF8FBE, #FF6FA8);
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .buy-btn:hover { opacity: 0.9; }
+    .buy-btn:active { transform: scale(0.95); }
+    .buy-btn.owned { background: linear-gradient(135deg, #B79CFF, #9B7FF0); }
+    .buy-btn.equipped { background: #C8BCE8; }
+    .buy-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .toast {
+      position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
+      background: #5A3A4A; color: #fff; padding: 9px 18px; border-radius: 18px;
+      font-size: 13px; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .empty { text-align:center; color:#C79CB0; padding: 40px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <span class="title">🛒 宠物商店</span>
+    <span class="coin-badge">🪙 <span id="coin-count">…</span></span>
+  </div>
+  <div class="wrap" id="shop-content"></div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="/src/renderer/shop.ts"></script>
+</body>
+</html>

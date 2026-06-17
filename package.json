@@ -1,0 +1,32 @@
+{
+  "name": "pixelpal",
+  "version": "0.1.0",
+  "description": "PixelPal — 像素桌面宠物，你的环境陪伴小生物",
+  "main": "dist/main/main/index.js",
+  "author": "PixelPal Team",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
+    "dev:main": "tsc -p tsconfig.main.json && electron .",
+    "dev:renderer": "vite",
+    "build": "vite build && tsc -p tsconfig.main.json",
+    "build:win": "npm run build && npx electron-builder --win --x64",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit -p tsconfig.main.json && tsc --noEmit -p tsconfig.json",
+    "test": "echo \"Tests placeholder\" && exit 0",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "concurrently": "^9.1.2",
+    "electron": "^28.3.3",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.11"
+  }
+}

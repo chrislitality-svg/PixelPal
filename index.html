@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixelPal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+      user-select: none;
+      -webkit-app-region: no-drag;
+    }
+    canvas#pet-canvas {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+    #bubble-container {
+      position: absolute;
+      bottom: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    #bubble-container.visible {
+      opacity: 1;
+    }
+    .bubble {
+      background: linear-gradient(145deg, #FFF6FB 0%, #FFE9F3 100%);
+      border: 2px solid #FFB7D5;
+      border-radius: 16px;
+      padding: 8px 14px;
+      font-family: 'Comic Sans MS', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
+      color: #8A4A66;
+      max-width: 190px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(255,150,190,0.35);
+    }
+    .bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 9px solid #FFB7D5;
+    }
+    .bubble::before {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 7px solid #FFE9F3;
+      z-index: 1;
+    }
+    #context-menu {
+      position: absolute;
+      display: none;
+      background: linear-gradient(160deg, #FFFDF9 0%, #FFF2F8 100%);
+      border: 2px solid #FFC4DD;
+      border-radius: 14px;
+      padding: 6px;
+      min-width: 152px;
+      max-height: calc(100vh - 12px);
+      overflow-y: auto;
+      font-family: 'Comic Sans MS', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      font-size: 12.5px;
+      box-shadow: 0 8px 22px rgba(255,150,190,0.35);
+      z-index: 1000;
+    }
+    #context-menu::-webkit-scrollbar { width: 4px; }
+    #context-menu::-webkit-scrollbar-thumb { background: #FFC4DD; border-radius: 2px; }
+    #context-menu .menu-item {
+      padding: 6px 14px;
+      cursor: pointer;
+      color: #7A5468;
+      border-radius: 9px;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+    }
+    #context-menu .menu-item:hover {
+      background: #FFD9E9;
+      color: #C13E78;
+      transform: translateX(2px);
+    }
+    #context-menu .menu-item.danger { color: #D06A8E; }
+    #context-menu .menu-item.danger:hover { background: #FFD2D2; color: #C0392B; }
+    #context-menu .menu-sep {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #FFD0E2, transparent);
+      margin: 5px 8px;
+    }
+    #onboarding-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(ellipse at center, rgba(120,60,90,0.42) 0%, rgba(120,60,90,0.24) 58%, rgba(120,60,90,0) 100%);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    #onboarding-overlay.active { display: flex; }
+    #onboarding-card {
+      background: linear-gradient(160deg, #FFFDF9 0%, #FFF2F8 100%);
+      border: 2.5px solid #FFC4DD;
+      border-radius: 22px;
+      padding: 26px 24px;
+      width: 300px;
+      max-width: calc(100vw - 24px);
+      text-align: center;
+      font-family: 'Comic Sans MS', 'Segoe UI Rounded', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      box-shadow: 0 12px 34px rgba(255,150,190,0.4);
+      -webkit-app-region: drag;   /* drag the card to move the window */
+    }
+    #onboarding-card input,
+    #onboarding-card button { -webkit-app-region: no-drag; }
+    #onboarding-card h2 {
+      font-size: 19px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #C13E78;
+      letter-spacing: 0.5px;
+    }
+    #onboarding-card p {
+      font-size: 12.5px;
+      color: #B07C92;
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+    #onboarding-card input {
+      width: 100%;
+      padding: 9px 12px;
+      border: 2px solid #FFD0E2;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      text-align: center;
+      color: #6B4A5B;
+      outline: none;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    #onboarding-card input:focus { border-color: #FF8FBE; }
+    #onboarding-card button {
+      background: linear-gradient(135deg, #FF8FBE, #FF6FA8);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 10px 28px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 0 rgba(224,64,126,0.25);
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    #onboarding-card button:hover { opacity: 0.92; }
+    #onboarding-card button:active { transform: translateY(3px); box-shadow: none; }
+    .onb-progress {
+      width: 100%;
+      height: 9px;
+      background: #FBD8E6;
+      border-radius: 5px;
+      margin-bottom: 18px;
+      overflow: hidden;
+    }
+    .onb-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #FF8FBE, #FF6FA8);
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+    #focus-indicator {
+      position: absolute;
+      top: -20px;
+      right: 0;
+      font-size: 10px;
+      font-family: 'Courier New', monospace;
+      color: rgba(150,150,150,0.6);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    #focus-indicator.visible { opacity: 1; }
+    #recording-indicator {
+      position: absolute;
+      top: -24px;
+      right: 0;
+      background: #e55;
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: monospace;
+      display: none;
+      animation: pulse 1s infinite;
+    }
+    #recording-indicator.visible { display: block; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    #levelup-banner {
+      position: absolute;
+      bottom: 150px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Comic Sans MS', 'Segoe UI Rounded', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #FFF7FB;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      text-shadow: 0 2px 0 #E0407E, 0 0 10px rgba(255,170,210,0.95);
+      z-index: 1500;
+    }
+    #levelup-banner.evo {
+      font-size: 20px;
+      color: #FFFCFF;
+      text-shadow: 0 2px 0 #9B5BD6, 0 0 12px rgba(210,180,255,0.95);
+    }
+    #levelup-banner.show { animation: lvlpop 1.9s ease-out; }
+    @keyframes lvlpop {
+      0%   { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.4); }
+      18%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.2); }
+      32%  { transform: translateX(-50%) translateY(0) scale(1); }
+      78%  { opacity: 1; transform: translateX(-50%) translateY(-20px) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-38px) scale(1); }
+    }
+  </style>
+</head>
+<body>
+  <div id="pet-wrapper" style="position: absolute; bottom: 0; left: 0;">
+    <canvas id="pet-canvas" width="128" height="128"></canvas>
+    <div id="focus-indicator">💤 专注中</div>
+    <div id="recording-indicator">● REC</div>
+  </div>
+
+  <div id="bubble-container">
+    <div class="bubble" id="bubble-text"></div>
+  </div>
+
+  <div id="levelup-banner"></div>
+
+  <div id="context-menu">
+    <div class="menu-item" data-action="feed">🍖 喂食</div>
+    <div class="menu-item" data-action="pet">✋ 摸头</div>
+    <div class="menu-item" data-action="joke">😜 讲个冷笑话</div>
+    <div class="menu-item" data-action="mischief">📂 搞个恶作剧</div>
+    <div class="menu-item" data-action="cleanpoop">🧹 清理便便</div>
+    <div class="menu-item" data-action="rest">😴 让它休息</div>
+    <div class="menu-sep"></div>
+    <div class="menu-item" data-action="work">🛠️ 打工赚钱</div>
+    <div class="menu-item" data-action="visit">🧑‍🤝‍🧑 叫朋友来玩</div>
+    <div class="menu-item" data-action="party">🎉 开个派对</div>
+    <div class="menu-item" data-action="shop">🛒 商店</div>
+    <div class="menu-item" data-action="gallery">📖 成就图鉴</div>
+    <div class="menu-item" data-action="report">📈 成长报告</div>
+    <div class="menu-item" data-action="status">📊 状态卡</div>
+    <div class="menu-item" data-action="settings">⚙️ 设置</div>
+    <div class="menu-sep"></div>
+    <div class="menu-item danger" data-action="killpet">🍃 放归大自然</div>
+  </div>
+
+  <div id="onboarding-overlay">
+    <div id="onboarding-card">
+      <div class="onb-progress"><div class="onb-progress-fill" id="onb-progress" style="width: 15%"></div></div>
+      <h2 id="onb-title">一只小生物出现了！</h2>
+      <p id="onb-desc">它从像素蛋里破壳而出，正睁大眼睛看着你。<br>给它起个名字吧？</p>
+      <input type="text" id="onb-input" placeholder="输入名字..." maxlength="12" autocomplete="off">
+      <br>
+      <button id="onb-btn">确定</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/renderer/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+node_modules/
+dist/
+out/
+release/
+*.exe
+*.db
+*.sqlite
+.env
+*.pfx
+*.pem
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
+*.tsbuildinfo

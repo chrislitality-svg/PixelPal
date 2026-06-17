@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PixelPal 设置</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Comic Sans MS', 'Segoe UI Rounded', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(165deg, #FFF6FB 0%, #FFEAF3 45%, #FDE8F0 100%);
+      color: #6B4A5B;
+      padding: 26px 22px 30px;
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 22px;
+      color: #C13E78;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .section {
+      background: rgba(255,255,255,0.7);
+      border: 1.5px solid #FFD0E2;
+      border-radius: 18px;
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(255,150,190,0.12);
+    }
+    .section-header {
+      font-size: 13px;
+      font-weight: 700;
+      color: #D06A8E;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      font-size: 13px;
+      border-bottom: 1px dashed #FCE0EC;
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-row label {
+      flex: 1;
+      color: #6B4A5B;
+    }
+    .setting-row .hint {
+      font-size: 10px;
+      color: #C79CB0;
+      margin-top: 2px;
+    }
+    .setting-row input[type="text"],
+    .setting-row select {
+      width: 180px;
+      padding: 6px 10px;
+      border: 1.5px solid #FFD0E2;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 12px;
+      background: #FFF;
+      color: #6B4A5B;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .setting-row input[type="text"]:focus,
+    .setting-row select:focus { border-color: #FF9EC2; }
+    .setting-row input[type="range"] { width: 130px; accent-color: #FF8FBE; }
+    .setting-row input[type="checkbox"] {
+      width: 20px; height: 20px; cursor: pointer; accent-color: #FF6FA8;
+    }
+    .info-box {
+      background: #FFF0F6;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin: 8px 0;
+      font-size: 11px;
+      color: #B07C92;
+      line-height: 1.6;
+    }
+    .bar-track { height: 6px; background: #FBD8E6; border-radius: 3px; margin-top: 6px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; background: #FF8FBE; }
+    .gen-preview {
+      width: 100%;
+      height: 96px;
+      border-radius: 12px;
+      margin-top: 10px;
+      background: #FFF0F6 center/cover no-repeat;
+      border: 1.5px dashed #FFC4DD;
+      display: flex; align-items: center; justify-content: center;
+      color: #C79CB0; font-size: 11px;
+    }
+    .actions { display: flex; gap: 10px; margin-top: 22px; }
+    .btn {
+      flex: 1;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 11px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.06);
+    }
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: translateY(2px); box-shadow: none; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #FF8FBE, #FF6FA8); }
+    .btn-accent  { background: linear-gradient(135deg, #B79CFF, #9B7FF0); width: 100%; margin-top: 2px; }
+    .btn-danger  { background: linear-gradient(135deg, #FF9A9A, #F47171); }
+    .btn-mini {
+      border: none; border-radius: 10px; padding: 6px 12px; margin-left: 6px;
+      font-family: inherit; font-size: 12px; font-weight: 700; color: #fff; cursor: pointer;
+      background: linear-gradient(135deg, #FF8FBE, #FF6FA8); transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-mini:hover { opacity: 0.9; }
+    .btn-mini:active { transform: scale(0.95); }
+    .note { font-size: 10px; color: #C79CB0; margin-top: 10px; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <h1>🐾 PixelPal 设置</h1>
+
+  <!-- General -->
+  <div class="section">
+    <div class="section-header">💗 通用</div>
+    <div class="setting-row">
+      <label>开机自启<div class="hint">开机时自动唤醒你的小伙伴</div></label>
+      <input type="checkbox" id="auto-start">
+    </div>
+    <div class="setting-row">
+      <label>省电模式<div class="hint">降低动画帧率，减少资源占用</div></label>
+      <input type="checkbox" id="power-save">
+    </div>
+    <div class="setting-row">
+      <label>气泡频率</label>
+      <input type="range" id="bubble-freq" min="1" max="10" value="5">
+    </div>
+  </div>
+
+  <!-- Sound -->
+  <div class="section">
+    <div class="section-header">🔊 音效</div>
+    <div class="setting-row">
+      <label>开启音效</label>
+      <input type="checkbox" id="sound-enabled" checked>
+    </div>
+    <div class="setting-row">
+      <label>音量</label>
+      <input type="range" id="sound-volume" min="0" max="100" value="70">
+    </div>
+    <div class="setting-row">
+      <label>互动音<div class="hint">摸头 / 喂食 / 戳</div></label>
+      <input type="checkbox" id="sfx-interaction" checked>
+    </div>
+    <div class="setting-row">
+      <label>奖励音<div class="hint">金币 / 升级 / 进化 / 打工</div></label>
+      <input type="checkbox" id="sfx-reward" checked>
+    </div>
+    <div class="setting-row">
+      <label>环境音<div class="hint">拉屎 / 恶作剧 / 冷笑话 / 天气</div></label>
+      <input type="checkbox" id="sfx-ambient" checked>
+    </div>
+  </div>
+
+  <!-- Behaviour -->
+  <div class="section">
+    <div class="section-header">🐾 调皮捣蛋</div>
+    <div class="setting-row">
+      <label>桌面漫游<div class="hint">让宠物在整个桌面跑来跑去</div></label>
+      <input type="checkbox" id="roam">
+    </div>
+    <div class="setting-row">
+      <label>恶作剧开文件夹<div class="hint">自动打开文件夹的频率（右键菜单可随时手动触发）</div></label>
+      <select id="mischief-level">
+        <option value="off">关闭</option>
+        <option value="low">低频</option>
+        <option value="medium">中频</option>
+        <option value="high">高频</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label>讲冷笑话<div class="hint">自动讲冷笑话的频率（右键菜单可随时手动触发）</div></label>
+      <select id="joke-level">
+        <option value="off">关闭</option>
+        <option value="low">低频</option>
+        <option value="medium">中频</option>
+        <option value="high">高频</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label>每日天气播报<div class="hint">每天第一次见面播报天气与穿衣建议</div></label>
+      <input type="checkbox" id="weather-enabled">
+    </div>
+  </div>
+
+  <!-- Tools (moved out of the pet's right-click menu) -->
+  <div class="section">
+    <div class="section-header">🛠️ 工具</div>
+    <div class="setting-row">
+      <label>专注模式<div class="hint">让宠物安静下来，暂停打扰</div></label>
+      <input type="checkbox" id="focus-mode">
+    </div>
+    <div class="setting-row">
+      <label>记录精彩瞬间<div class="hint">捕捉桌面上宠物的样子</div></label>
+      <span>
+        <button class="btn-mini" id="record-btn">🎬 录制</button>
+        <button class="btn-mini" id="shot-btn">📷 截图</button>
+      </span>
+    </div>
+  </div>
+
+  <!-- LLM -->
+  <div class="section">
+    <div class="section-header">💬 语言模型（可选）</div>
+    <div class="setting-row">
+      <label>启用 LLM</label>
+      <input type="checkbox" id="llm-enabled">
+    </div>
+    <div class="setting-row">
+      <label>服务商</label>
+      <select id="llm-provider">
+        <option value="builtin">内置轻量模型</option>
+        <option value="ollama">本地 ollama</option>
+        <option value="openai">OpenAI 兼容 API</option>
+        <option value="off">关闭</option>
+      </select>
+    </div>
+    <div class="setting-row">
+      <label>API 地址</label>
+      <input type="text" id="llm-url" placeholder="http://localhost:11434">
+    </div>
+    <div class="setting-row">
+      <label>API Key</label>
+      <input type="text" id="llm-key" placeholder="sk-...">
+    </div>
+    <div class="setting-row">
+      <label>模型名</label>
+      <input type="text" id="llm-model" placeholder="qwen2.5:3b">
+    </div>
+    <div class="setting-row">
+      <label>自言自语频率</label>
+      <input type="range" id="monologue-freq" min="1" max="10" value="3">
+    </div>
+
+    <div id="llm-status" class="info-box" style="display:none;">
+      <div id="llm-status-text">模型状态：检查中...</div>
+      <div id="llm-download-progress" style="display:none;">
+        <div class="bar-track"><div class="bar-fill" id="llm-progress-bar" style="width:0%;"></div></div>
+        <div id="llm-progress-text" style="font-size:10px;margin-top:4px;color:#C79CB0;">0%</div>
+      </div>
+    </div>
+    <div class="note">推理超时 (&gt;10s) 自动降级为模板回复。<br>模型缓存路径：%APPDATA%/PixelPal/models/</div>
+  </div>
+
+  <!-- Actions -->
+  <div class="actions">
+    <button class="btn btn-primary" id="save-btn">保存</button>
+    <button class="btn btn-danger" id="reset-btn">🍃 放归大自然</button>
+  </div>
+  <div class="note" style="text-align:center;">放归后它会去追寻自己的梦想；你可以马上再领养一只新的、和这台电脑绑定的小伙伴。</div>
+
+  <script type="module" src="/src/renderer/settings.ts"></script>
+</body>
+</html>

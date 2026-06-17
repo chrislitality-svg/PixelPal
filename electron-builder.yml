@@ -1,0 +1,41 @@
+appId: com.pixelpal.app
+productName: 可爱小宠物
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+  signAndEditExecutable: false
+  icon: build/icon.ico
+  artifactName: "可爱小宠物.${ext}"
+nsis:
+  oneClick: false
+  perMachine: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: 可爱小宠物
+extraResources:
+  - from: assets/
+    to: assets/
+    filter:
+      - "**/*"
+npmRebuild: true
+asar: true
+asarUnpack:
+  - node_modules/better-sqlite3/build/Release/*.node
+  - node_modules/keytar/build/Release/*.node
+files:
+  - dist/main/**/*
+  - dist/renderer/**/*
+  - node_modules/**/*
+  - "!node_modules/.cache/**"
+  - "!**/*.map"
+  - "!dist/win-unpacked/**"
+  - "!dist/win/**"
+  - "!dist/*.exe"
+  - "!dist/*.7z"
+publish:
+  provider: github
+  owner: pixelpal
+  repo: PixelPal
