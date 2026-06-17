@@ -1394,5 +1394,6 @@ export class PetRenderer {
       px(27, 2, '#556688');
       px(28, 2, '#556688');
     }
+    this.lastBodyOffset = 0; // sleeping cat has no vertical bob
   }
 }

@@ -59,6 +59,7 @@ export class InputHandler {
   // Drag state
   private isDragging: boolean = false;
   private wasDragged: boolean = false;   // true if the last drag actually moved
+  private dragPending: boolean = false;  // true while async IPC for drag start is in-flight
 
   // Click detection
   private clickCount: number = 0;
@@ -78,6 +79,7 @@ export class InputHandler {
   private boundDragMove: (e: MouseEvent) => void;
   private boundClick: (e: MouseEvent) => void;
   private boundContextMenu: (e: MouseEvent) => void;
+  private boundMouseLeave: () => void;
   private boundDocumentClick: (e: MouseEvent) => void;
   private boundKeyDown: (e: KeyboardEvent) => void;
   private boundWindowBlur: () => void;
@@ -102,6 +104,7 @@ export class InputHandler {
     this.boundDragMove    = (e: MouseEvent) => this.handleDragMove(e);
     this.boundClick       = (e: MouseEvent) => this.handleClick(e);
     this.boundContextMenu = (e: MouseEvent) => this.handleContextMenu(e);
+    this.boundMouseLeave  = () => this.handleMouseLeave();
     this.boundDocumentClick = () => this.hideContextMenu();
     this.boundKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && this.menuOpen) this.hideContextMenu();
@@ -121,6 +124,7 @@ export class InputHandler {
     this.canvas.addEventListener('mousedown',     this.boundMouseDown);
     this.canvas.addEventListener('click',         this.boundClick);
     this.canvas.addEventListener('contextmenu',   this.boundContextMenu);
+    this.canvas.addEventListener('mouseleave',    this.boundMouseLeave);
     document.addEventListener('click',            this.boundDocumentClick, true);
     document.addEventListener('keydown',          this.boundKeyDown);
     window.addEventListener('blur',               this.boundWindowBlur);
@@ -134,6 +138,7 @@ export class InputHandler {
     this.canvas.removeEventListener('mousedown',   this.boundMouseDown);
     this.canvas.removeEventListener('click',       this.boundClick);
     this.canvas.removeEventListener('contextmenu', this.boundContextMenu);
+    this.canvas.removeEventListener('mouseleave',  this.boundMouseLeave);
     document.removeEventListener('mouseup',   this.boundMouseUp);
     document.removeEventListener('mousemove', this.boundDragMove);
     document.removeEventListener('click',     this.boundDocumentClick, true);
@@ -182,19 +187,33 @@ export class InputHandler {
     }
   }
 
+  /** Reset hover state when the cursor leaves the canvas entirely. */
+  private handleMouseLeave(): void {
+    if (this.isHovering && !this.isDragging && !this.menuOpen) {
+      this.isHovering = false;
+      window.pixelpal.mouseLeave();
+      this.canvas.style.cursor = 'default';
+    }
+  }
+
   // ------------------------------------------------------------------
   // Mouse-down: start drag
   // ------------------------------------------------------------------
 
   private async handleMouseDown(e: MouseEvent): Promise<void> {
     if (e.button !== 0) return;   // left click only
+    if (this.dragPending) return; // prevent overlapping drag starts
 
     const alpha = this.renderer.getPixelAlpha(e.offsetX, e.offsetY);
     if (alpha <= ALPHA_HIT_THRESHOLD) return;  // not over the pet
 
+    this.dragPending = true;
+
     // Fetch current window position (async IPC) then start the drag
     try {
       const info = await window.pixelpal.getScreenInfo();
+      // If mouse was released during async gap, abort
+      if (!this.dragPending) return;
       this.isDragging  = true;
       this.wasDragged  = false;
       this.dragHandler.startDrag(
@@ -209,6 +228,8 @@ export class InputHandler {
       document.addEventListener('mousemove', this.boundDragMove);
     } catch {
       // IPC unavailable (e.g. during tests) -- silently skip
+    } finally {
+      this.dragPending = false;
     }
   }
 

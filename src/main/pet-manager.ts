@@ -57,6 +57,7 @@ export class PetManager {
         preload: path.join(__dirname, '..', 'preload', 'index.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        sandbox: true,
         // Ensure rendering happens even when window is initially hidden
         backgroundThrottling: false,
       },

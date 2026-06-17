@@ -37,6 +37,12 @@ let lastMischiefTime = 0;
 // (which previously made re-rolls keep producing the old creature).
 const releasedPetIds = new Set<string>();
 
+/** Prevent unbounded growth of releasedPetIds after many re-rolls. */
+function capReleasedPetIds(): void {
+  const iter = releasedPetIds.values();
+  for (let i = 0; i < 250; i++) releasedPetIds.delete(iter.next().value);
+}
+
 // ---- Job lifecycle (pet leaves to work / returns) ----
 let depsRef: IpcDeps | null = null;
 let jobFinishTimer: ReturnType<typeof setTimeout> | null = null;
@@ -57,10 +63,14 @@ function jobSendToPet(channel: string, payload: unknown): void {
 function beginWorkSequence(endsAt: number): void {
   if (!depsRef) return;
   jobSendToPet(IPC_CHANNELS.ON_WORK_STATE, true);
+  const deps = depsRef;
   if (jobHideTimer) clearTimeout(jobHideTimer);
-  jobHideTimer = setTimeout(() => depsRef?.petManager.setVisible(false), 2500);
+  jobHideTimer = setTimeout(() => deps?.petManager.setVisible(false), 2500);
   if (jobFinishTimer) clearTimeout(jobFinishTimer);
-  jobFinishTimer = setTimeout(() => finishWork(), Math.max(0, endsAt - Date.now()));
+  jobFinishTimer = setTimeout(() => {
+    if (!depsRef) return;
+    finishWork();
+  }, Math.max(0, endsAt - Date.now()));
 }
 
 /** Bring the pet back into view (+ reward bubble on success). */
@@ -142,9 +152,9 @@ export function registerIpcHandlers(deps: IpcDeps): void {
 
   ipcMain.handle(
     IPC_CHANNELS.PET_SAVE,
-    (_event, pet: PetEntity): void => {
+    (_event, pet: PetEntity): { saved: boolean; reason?: string } => {
       // Never resurrect a released pet (its old id was deleted on kill).
-      if (pet && releasedPetIds.has(pet.id)) return;
+      if (pet && releasedPetIds.has(pet.id)) return { saved: false, reason: 'released' };
       // If the save is triggered by a "key event" (eat, levelup, etc.)
       // we bypass the debounce and write immediately.
       const state = (pet as PetEntity & { _triggerState?: string });
@@ -156,6 +166,7 @@ export function registerIpcHandlers(deps: IpcDeps): void {
       } else {
         store.savePet(pet);
       }
+      return { saved: true };
     }
   );
 
@@ -249,6 +260,7 @@ export function registerIpcHandlers(deps: IpcDeps): void {
   ipcMain.handle(
     IPC_CHANNELS.MOVE_PET,
     (_event, position: { x: number; y: number }): void => {
+      if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) return;
       petManager.moveTo(position.x, position.y);
     }
   );
@@ -287,6 +299,7 @@ export function registerIpcHandlers(deps: IpcDeps): void {
 
   ipcMain.handle(IPC_CHANNELS.KILL_PET, (_event, petId: string) => {
     releasedPetIds.add(petId);              // block resurrection saves
+    if (releasedPetIds.size > 500) capReleasedPetIds();
     const seedInfo = store.killPet(petId);  // also resets the wallet
     worldManager.clearPoops();
     // Cancel any in-flight job and make sure the (new) pet is visible.
@@ -307,6 +320,7 @@ export function registerIpcHandlers(deps: IpcDeps): void {
 
   ipcMain.handle(IPC_CHANNELS.RELEASE_AND_QUIT, (_event, petId: string) => {
     releasedPetIds.add(petId); // block the beforeunload resurrection save on quit
+    if (releasedPetIds.size > 500) capReleasedPetIds();
     store.killPet(petId);      // delete + advance incarnation (next launch = new egg)
     clearJobTimers();
     worldManager.clearPoops();
@@ -355,6 +369,7 @@ export function registerIpcHandlers(deps: IpcDeps): void {
   // ---- Desktop poop world ----
 
   ipcMain.handle(IPC_CHANNELS.WORLD_ADD_POOP, (_event, pos: { x: number; y: number }) => {
+    if (!Number.isFinite(pos.x) || !Number.isFinite(pos.y)) return [];
     return worldManager.addPoop(pos.x, pos.y);
   });
 
@@ -382,7 +397,9 @@ export function registerIpcHandlers(deps: IpcDeps): void {
   ipcMain.handle(
     IPC_CHANNELS.IMAGE_GENERATE,
     (_event, prompt: string, opts?: { aspectRatio?: string; model?: string }) => {
-      return generateImage(prompt, opts || {});
+      const safe = String(prompt).slice(0, 2000).trim();
+      if (!safe) return { ok: false, error: 'empty_prompt' };
+      return generateImage(safe, opts || {});
     }
   );
 
@@ -399,6 +416,7 @@ export function registerIpcHandlers(deps: IpcDeps): void {
   ipcMain.handle(IPC_CHANNELS.WALLET_GET, () => store.getWallet());
 
   ipcMain.handle(IPC_CHANNELS.WALLET_EARN, (_event, amount: number) => {
+    if (!Number.isFinite(amount) || amount <= 0) return store.getWallet();
     const wallet = store.earnCoins(amount);
     broadcastWallet(wallet);
     return wallet;
@@ -470,8 +488,9 @@ export function registerIpcHandlers(deps: IpcDeps): void {
   ipcMain.handle(IPC_CHANNELS.JOB_GET, () => store.getJobState());
 
   ipcMain.handle(IPC_CHANNELS.JOB_START, (_event, jobId: string) => {
-    const state = store.startJob(jobId);
     const job = JOBS.find((j) => j.id === jobId);
+    if (!job) return store.getJobState();
+    const state = store.startJob(jobId);
     if (job && state.current?.id === jobId) {
       pushPetBubble(`我去${job.name}啦，等我回来~`, job.icon);
       // Pet heads off the desktop to work; returns automatically at endsAt.
@@ -489,6 +508,8 @@ export function registerIpcHandlers(deps: IpcDeps): void {
   // ---- Settings window → pet window actions (screenshot / record) ----
 
   ipcMain.handle(IPC_CHANNELS.PET_ACTION, (_event, action: string) => {
+    const ALLOWED = new Set(['screenshot', 'record', 'record-start', 'record-stop']);
+    if (!ALLOWED.has(action)) return;
     const win = petManager.getWindow();
     if (win && !win.isDestroyed()) {
       win.webContents.send(IPC_CHANNELS.ON_PET_ACTION, action);
@@ -521,6 +542,7 @@ export function openSettingsWindow(): void {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
 
@@ -558,6 +580,7 @@ export function openStatusWindow(): void {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
 
@@ -595,6 +618,7 @@ export function openShopWindow(): void {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
 
@@ -630,6 +654,7 @@ export function openGalleryWindow(): void {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
 
@@ -665,6 +690,7 @@ export function openWorkWindow(): void {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
 
@@ -700,6 +726,7 @@ export function openReportWindow(): void {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
   });
 
@@ -759,6 +786,7 @@ function createVisitor(spot: { fromRight: boolean; meetingX: number; meetingY: n
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
       backgroundThrottling: false,
     },
   });

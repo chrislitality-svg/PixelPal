@@ -5,7 +5,7 @@
 // screen monitor, persistence store, and wires up IPC handlers.
 // ============================================================
 
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, dialog } from 'electron';
 
 import { IPC_CHANNELS } from '../shared/types';
 import { EMPATHY_MESSAGES, COIN_REWARDS } from '../shared/constants';
@@ -40,7 +40,13 @@ let isQuitting = false;
 function initialize(): void {
   // --- Persistence ---
   store = new Store();
-  store.initialize();
+  try {
+    store.initialize();
+  } catch (err) {
+    dialog.showErrorBox('启动失败', `数据库初始化失败，请检查磁盘权限后重试。\n\n${err}`);
+    app.quit();
+    return;
+  }
 
   // --- Sync launch-at-login with the saved preference ---
   // Settings are the source of truth; default is on (user requested
@@ -215,13 +221,17 @@ app.on('before-quit', () => {
   clearJobTimers();
 });
 
-// Handle uncaught exceptions gracefully
+// Handle uncaught exceptions gracefully — log and exit to prevent data corruption.
 process.on('uncaughtException', (err) => {
   console.error('[Main] Uncaught exception:', err);
+  try { store?.close(); } catch {}
+  app.quit();
 });
 
 process.on('unhandledRejection', (reason) => {
   console.error('[Main] Unhandled rejection:', reason);
+  try { store?.close(); } catch {}
+  app.quit();
 });
 
 // ---- Helpers ----

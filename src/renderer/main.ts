@@ -77,8 +77,14 @@ let behaviorSettings: { roam: boolean; mischiefLevel: FreqLevel; jokeLevel: Freq
   jokeLevel: 'medium',
 };
 
+// Module-level state sets (hoisted to avoid per-frame array allocation)
+const HIGH_ACTIVITY_STATES = new Set(['wander', 'selfplay', 'eat', 'poop', 'fish', 'approach']);
+const JOKE_ELIGIBLE_STATES = new Set(['idle', 'wander', 'daydream', 'fish', 'selfplay']);
+const MONOLOGUE_ELIGIBLE_STATES = new Set(['idle', 'wander', 'daydream', 'selfplay']);
+const MEMORY_ELIGIBLE_STATES = new Set(['idle', 'wander', 'daydream']);
+
 // Track the previous FSM state so we can detect poop / wander entries.
-let lastFsmState = '';
+let lastFsmState: string | null = null;
 let jokeTimer: ReturnType<typeof setInterval> | null = null;
 let memoryTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -460,7 +466,9 @@ function update(dt: number): void {
       // Achievement banner + coin reward
       showLevelBanner(`🏆 ${msDef.icon} ${msDef.name}`, false);
       if (msDef.coin) {
-        window.pixelpal.earnCoins(msDef.coin).catch(() => {});
+        window.pixelpal.earnCoins(msDef.coin).catch(() => {
+          bubbleSystem.show({ text: '\u26A0\uFE0F \u91D1\u5E01\u5230\u8D26\u5931\u8D25\u4E86', type: 'info', duration: 2000 });
+        });
       }
       // Spawn celebration particles
       for (let i = 0; i < 6; i++) {
@@ -477,7 +485,7 @@ function update(dt: number): void {
 
   // 7. Auto-switch game loop between active/idle FPS based on pet state
   const state = petManager.fsm.currentState;
-  const isHighActivity = ['wander', 'selfplay', 'eat', 'poop', 'fish', 'approach'].includes(state);
+  const isHighActivity = HIGH_ACTIVITY_STATES.has(state);
   gameLoop.setFPSMode(isHighActivity ? 'active' : 'idle');
 
   // 7b. Roam the whole desktop (moves the window while wandering)
@@ -487,7 +495,7 @@ function update(dt: number): void {
 
   // 7c. When the pet enters the poop state, drop a poop on the desktop
   //     at its current screen position (handled by the world overlay).
-  if (state === 'poop' && lastFsmState !== 'poop') {
+  if (state === 'poop' && lastFsmState !== null && lastFsmState !== 'poop') {
     dropPoopOnDesktop();
     sound.play('poop');
   }
@@ -500,10 +508,14 @@ function update(dt: number): void {
     let didEvolution = false;
     for (const ev of petManager.pendingSaveEvents) {
       if (ev === 'levelup') {
-        window.pixelpal.earnCoins(COIN_REWARDS.levelupPerLevel * petManager.data.level).catch(() => {});
+        window.pixelpal.earnCoins(COIN_REWARDS.levelupPerLevel * petManager.data.level).catch(() => {
+          bubbleSystem.show({ text: '\u26A0\uFE0F \u91D1\u5E01\u5230\u8D26\u5931\u8D25\u4E86', type: 'info', duration: 2000 });
+        });
         didLevelup = true;
       } else if (ev === 'evolution') {
-        window.pixelpal.earnCoins(COIN_REWARDS.evolution).catch(() => {});
+        window.pixelpal.earnCoins(COIN_REWARDS.evolution).catch(() => {
+          bubbleSystem.show({ text: '\u26A0\uFE0F \u91D1\u5E01\u5230\u8D26\u5931\u8D25\u4E86', type: 'info', duration: 2000 });
+        });
         didEvolution = true;
       }
     }
@@ -826,11 +838,13 @@ async function pollTimeContext(): Promise<void> {
     if (petManager.fsm.isIn('idle') || petManager.fsm.isIn('wander')) {
       petManager.fsm.transition('sleep', 'empathy-low-battery');
     }
-    // Drain energy to reflect tiredness
-    petManager.needs.needs.energy = Math.max(
-      10,
-      petManager.needs.needs.energy - 2,
-    );
+    // Drain energy to reflect tiredness — once per low-battery period
+    if (!lowBatterySlowdownActive) {
+      petManager.needs.needs.energy = Math.max(
+        10,
+        petManager.needs.needs.energy - 2,
+      );
+    }
   }
 
   // Restore normal speed when battery is no longer low
@@ -1010,7 +1024,7 @@ function applyFocusMode(enabled: boolean): void {
     // Transition pet to sleep if it's in a quiet state
     if (petManager) {
       const state = petManager.fsm.currentState;
-      if (['idle', 'wander', 'daydream', 'fish', 'selfplay'].includes(state)) {
+      if (JOKE_ELIGIBLE_STATES.has(state)) {
         petManager.fsm.transition('sleep', 'focus-mode');
       }
     }
@@ -1104,7 +1118,7 @@ function setupJokeScheduler(): void {
 
     // Don't interrupt sleep / drag / eat — only chat when free-ish.
     const state = petManager.fsm.currentState;
-    if (!['idle', 'wander', 'daydream', 'selfplay'].includes(state)) return;
+    if (!MONOLOGUE_ELIGIBLE_STATES.has(state)) return;
 
     if (Math.random() > chance) return;
 
@@ -1152,7 +1166,9 @@ function awardCoins(reason: string): void {
   if (now - (coinCooldowns[reason] ?? 0) < cd) return;
   coinCooldowns[reason] = now;
 
-  window.pixelpal.earnCoins(amount).catch(() => {});
+  window.pixelpal.earnCoins(amount).catch(() => {
+    if (bubbleSystem) bubbleSystem.show({ text: '\u26A0\uFE0F \u91D1\u5E01\u5230\u8D26\u5931\u8D25\u4E86', type: 'info', duration: 2000 });
+  });
   sound.play('coin');
   if (renderer) renderer.addParticle('star', CANVAS_SIZE / 2, CANVAS_SIZE * 0.4);
 }
@@ -1164,7 +1180,9 @@ function tryFindCoins(): void {
   lastCoinFindTime = now;
 
   const amt = ROAM_COIN.min + Math.floor(Math.random() * (ROAM_COIN.max - ROAM_COIN.min + 1));
-  window.pixelpal.earnCoins(amt).catch(() => {});
+  window.pixelpal.earnCoins(amt).catch(() => {
+    if (bubbleSystem) bubbleSystem.show({ text: '\u26A0\uFE0F \u91D1\u5E01\u5230\u8D26\u5931\u8D25\u4E86', type: 'info', duration: 2000 });
+  });
   sound.play('coin');
   if (bubbleSystem) {
     bubbleSystem.show({ text: `咦，捡到 ${amt} 个爱心币！`, type: 'info', duration: 4000, icon: '\u{1FA99}' });
@@ -1274,7 +1292,7 @@ function setupMemoryRecall(): void {
   memoryTimer = setInterval(() => {
     if (focusModeActive || !petManager || !bubbleSystem) return;
     const state = petManager.fsm.currentState;
-    if (!['idle', 'wander', 'daydream'].includes(state)) return;
+    if (!MEMORY_ELIGIBLE_STATES.has(state)) return;
     if (Math.random() > MEMORY.chance) return;
 
     const line = composeMemoryLine();
@@ -1479,7 +1497,7 @@ function saveBlob(blob: Blob, filename: string): void {
   setTimeout(() => {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, 500);
+  }, 5000);
 }
 
 // ============================================================

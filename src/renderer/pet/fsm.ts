@@ -330,7 +330,7 @@ export class PetFSM {
   private onStateExit(state: PetState): void {
     switch (state) {
       case 'poop':
-        // Completing poop improves cleanliness a bit and happiness
+        // Poop makes the pet dirtier (lower cleanliness)
         this.needs.needs.cleanliness -= 5;
         this.needs.play(INTERACTION.poopCleanHappinessGain);
         break;

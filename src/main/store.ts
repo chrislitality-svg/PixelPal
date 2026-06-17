@@ -85,6 +85,9 @@ export class Store {
    */
   lastError: string | null = null;
 
+  /** Captured pet entity for guaranteed flush on close(). */
+  private pendingPet: PetEntity | null = null;
+
   constructor() {
     const userDataPath = app.getPath('userData');
     this.dbPath = path.join(userDataPath, 'pixelpal.db');
@@ -100,7 +103,9 @@ export class Store {
       this.open();
       this.ensureDefaultSettings();
     } catch (err) {
+      this.lastError = `Database initialization failed: ${err}`;
       console.error('[Store] Initialization failed:', err);
+      throw err;
     }
   }
 
@@ -175,6 +180,7 @@ export class Store {
    */
   savePet(pet: PetEntity): void {
     this.currentPetId = pet.id;
+    this.pendingPet = pet;
     this.scheduleDebouncedSave(pet);
   }
 
@@ -478,12 +484,37 @@ export class Store {
 
   /** Add (or remove, if negative) coins. Returns the updated wallet. */
   earnCoins(amount: number): Wallet {
-    const wallet = this.getWallet();
-    const delta = Math.floor(amount);
-    wallet.coins = Math.max(0, wallet.coins + delta);
-    if (delta > 0) wallet.totalEarned = (wallet.totalEarned ?? 0) + delta;
-    this.setWallet(wallet);
-    return wallet;
+    return this.atomicWalletOp((wallet) => {
+      const delta = Math.floor(amount);
+      wallet.coins = Math.max(0, wallet.coins + delta);
+      if (delta > 0) wallet.totalEarned = (wallet.totalEarned ?? 0) + delta;
+    });
+  }
+
+  /**
+   * Execute a wallet mutation inside a synchronous transaction so that
+   * concurrent read-modify-write sequences don't clobber each other.
+   */
+  private atomicWalletOp(mutate: (wallet: Wallet) => void): Wallet {
+    if (!this.db) return this.getWalletFallback();
+    const db = this.db;
+    let wallet: Wallet;
+    db.transaction(() => {
+      wallet = this.getWallet();
+      mutate(wallet);
+      this.setWalletUnsafe(wallet);
+    })();
+    return wallet!;
+  }
+
+  private setWalletUnsafe(wallet: Wallet): void {
+    this.db!.prepare(
+      `INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)`
+    ).run('wallet', JSON.stringify(wallet), Date.now());
+  }
+
+  private getWalletFallback(): Wallet {
+    return { coins: 0, cosmetics: [], equipped: {}, totalEarned: 0, jobsDone: 0 };
   }
 
   /**
@@ -494,20 +525,26 @@ export class Store {
    * and cosmetic ownership.
    */
   buyItem(itemId: string): BuyResult {
-    const wallet = this.getWallet();
+    if (!this.db) return { ok: false, wallet: this.getWalletFallback(), error: 'unknown' };
     const item = SHOP_ITEMS.find((i) => i.id === itemId);
-    if (!item) return { ok: false, wallet, error: 'unknown' };
-    if (wallet.coins < item.price) return { ok: false, wallet, error: 'coins' };
+    if (!item) return { ok: false, wallet: this.getWallet(), error: 'unknown' };
 
-    wallet.coins -= item.price;
-
-    if (item.category === 'cosmetic' && item.slot) {
-      if (!wallet.cosmetics.includes(item.id)) wallet.cosmetics.push(item.id);
-      wallet.equipped[item.slot] = item.id;
-    }
-
-    this.setWallet(wallet);
-    return { ok: true, wallet, itemId };
+    let result: BuyResult;
+    this.db.transaction(() => {
+      const wallet = this.getWallet();
+      if (wallet.coins < item.price) {
+        result = { ok: false, wallet, error: 'coins' };
+        return;
+      }
+      wallet.coins -= item.price;
+      if (item.category === 'cosmetic' && item.slot) {
+        if (!wallet.cosmetics.includes(item.id)) wallet.cosmetics.push(item.id);
+        wallet.equipped[item.slot] = item.id;
+      }
+      this.setWalletUnsafe(wallet);
+      result = { ok: true, wallet, itemId };
+    })();
+    return result!;
   }
 
   // ---- Public API: attribute history (成长报告) ----
@@ -624,12 +661,6 @@ export class Store {
     }
 
     const job = JOBS.find((j) => j.id === state.current!.id);
-    // Clear the active job.
-    if (this.db) {
-      try {
-        this.db.prepare('DELETE FROM settings WHERE key = ?').run('job');
-      } catch { /* ignore */ }
-    }
     if (!job) return { ok: false, error: 'none' };
 
     // Random payout event: 暴击 ×2 (15%) / 幸运 ×1.5 (15%) / 普通.
@@ -640,10 +671,21 @@ export class Store {
     else if (roll < 0.30) { mult = 1.5; event = '🍀 幸运'; }
     const reward = Math.round(job.reward * mult);
 
-    const wallet = this.earnCoins(reward);
-    wallet.jobsDone = (wallet.jobsDone ?? 0) + 1;
-    this.setWallet(wallet);
-    return { ok: true, reward, baseReward: job.reward, jobName: job.name, wallet, event };
+    // Clear the active job and update wallet atomically.
+    let wallet: Wallet;
+    if (this.db) {
+      this.db.transaction(() => {
+        try { this.db!.prepare('DELETE FROM settings WHERE key = ?').run('job'); } catch {}
+        wallet = this.getWallet();
+        const delta = Math.floor(reward);
+        wallet.coins = Math.max(0, wallet.coins + delta);
+        wallet.totalEarned = (wallet.totalEarned ?? 0) + delta;
+        wallet.jobsDone = (wallet.jobsDone ?? 0) + 1;
+        this.setWalletUnsafe(wallet);
+      })();
+      return { ok: true, reward, baseReward: job.reward, jobName: job.name, wallet: wallet!, event };
+    }
+    return { ok: false, error: 'none' };
   }
 
   /** Equip / unequip an already-owned cosmetic. Returns updated wallet. */
@@ -883,9 +925,10 @@ export class Store {
     if (this.debounceTimer) {
       clearTimeout(this.debounceTimer);
       this.debounceTimer = null;
-      // The pet data is captured in the setTimeout closure, so we
-      // cannot retrieve it here. Callers that need a guaranteed flush
-      // should call savePetImmediate() directly before shutdown.
+    }
+    if (this.pendingPet) {
+      this.savePetImmediate(this.pendingPet);
+      this.pendingPet = null;
     }
   }
 }

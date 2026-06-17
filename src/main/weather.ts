@@ -75,7 +75,7 @@ export async function fetchDailyWeather(): Promise<WeatherInfo | null> {
   try {
     // 1) Geolocate via public IP
     const geo = await getJson(
-      'http://ip-api.com/json/?lang=zh-CN&fields=status,city,regionName,lat,lon',
+      'https://ip-api.com/json/?lang=zh-CN&fields=status,city,regionName,lat,lon',
     );
     if (!geo || geo.status !== 'success' || typeof geo.lat !== 'number') {
       return null;

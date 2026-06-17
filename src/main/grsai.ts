@@ -20,12 +20,10 @@ import { URL } from 'url';
 
 import { GRSAI } from '../shared/constants';
 
-// API key resolution: env var wins, otherwise the project default key.
+// API key resolution: env var only; remove hardcoded default from public source.
 function getApiKey(): string {
-  return (
-    process.env.IMAGE_GEN_GRSAI_API_KEY ||
-    'sk-e89bc4c6f58f4b9eb5dcb8ec1237bf0a'
-  ).trim();
+  const key = process.env.IMAGE_GEN_GRSAI_API_KEY;
+  return key ? key.trim() : '';
 }
 
 export interface GenerateOptions {
@@ -105,7 +103,13 @@ function downloadBinary(urlStr: string, timeoutMs = 120000): Promise<Buffer> {
           return;
         }
         const chunks: Buffer[] = [];
-        res.on('data', (c) => chunks.push(c));
+        let total = 0;
+        const MAX_DOWNLOAD = 10 * 1024 * 1024; // 10 MB
+        res.on('data', (c) => {
+          total += c.length;
+          if (total > MAX_DOWNLOAD) { req.destroy(new Error('download too large')); return; }
+          chunks.push(c);
+        });
         res.on('end', () => resolve(Buffer.concat(chunks)));
       },
     );

@@ -524,7 +524,7 @@ export const BREED_REGISTRY: BreedDefinition[] = [
     id: 'pere-david', name: '麋鹿', species: 'deer', rarity: 'uncommon', weight: 15,
     colors: { body: '#6B4226', bodyDark: '#4B2E18', belly: '#A07850', eye: '#5B4030', nose: '#4B2E18', ear: '#5B3220', earInner: '#8B6848' },
     attributeModifiers: { wisdom: 10, strength: 8 },
-    description: ' majestic 的麋鹿，角似鹿非鹿，中国特有的珍稀物种',
+    description: 'majestic 的麋鹿，角似鹿非鹿，中国特有的珍稀物种',
   },
   {
     id: 'muntjac', name: '小麂', species: 'deer', rarity: 'uncommon', weight: 15,
@@ -957,7 +957,11 @@ export const MEMORY = {
 
 // ---- grsai 生图渠道默认配置 ----
 export const GRSAI = {
-  nodes: ['https://grsaiapi.com', 'https://grsai.dakka.com.cn'],
+  nodes: (() => {
+    const envNodes = process.env.IMAGE_GEN_GRSAI_NODES;
+    if (envNodes) return envNodes.split(',').map(s => s.trim()).filter(Boolean);
+    return ['https://grsaiapi.com'];
+  })(),
   defaultModel: 'gpt-image-2',
   pollIntervalMs: 4000,
   maxPolls: 90,

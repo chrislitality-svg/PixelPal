@@ -57,6 +57,7 @@ export class WorldManager {
         preload: path.join(__dirname, '..', 'preload', 'index.js'),
         contextIsolation: true,
         nodeIntegration: false,
+        sandbox: true,
         backgroundThrottling: false,
       },
     });
