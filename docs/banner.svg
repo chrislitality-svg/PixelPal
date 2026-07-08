@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="pp-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#241238"/><stop offset="1" stop-color="#3a1d5c"/>
+    </linearGradient>
+    <linearGradient id="pp-pet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFB562"/><stop offset="1" stop-color="#FF7EB6"/>
+    </linearGradient>
+    <linearGradient id="pp-title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFD36E"/><stop offset="1" stop-color="#FF9DBE"/>
+    </linearGradient>
+    <pattern id="pp-dots" width="34" height="34" patternUnits="userSpaceOnUse">
+      <rect width="4" height="4" fill="#ffffff" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="1280" height="320" fill="url(#pp-bg)"/>
+  <rect width="1280" height="320" fill="url(#pp-dots)"/>
+
+  <!-- mascot -->
+  <g transform="translate(120,86)">
+    <!-- ears -->
+    <rect x="18" y="-6" width="30" height="30" rx="4" fill="url(#pp-pet)"/>
+    <rect x="100" y="-6" width="30" height="30" rx="4" fill="url(#pp-pet)"/>
+    <!-- head -->
+    <rect x="0" y="12" width="148" height="140" rx="26" fill="url(#pp-pet)"/>
+    <!-- eyes -->
+    <rect x="34" y="56" width="24" height="30" rx="8" fill="#2a1740"/>
+    <rect x="90" y="56" width="24" height="30" rx="8" fill="#2a1740"/>
+    <circle cx="42" cy="64" r="4" fill="#fff"/><circle cx="98" cy="64" r="4" fill="#fff"/>
+    <!-- cheeks -->
+    <circle cx="30" cy="104" r="10" fill="#ff5f9e" opacity="0.55"/>
+    <circle cx="118" cy="104" r="10" fill="#ff5f9e" opacity="0.55"/>
+    <!-- smile -->
+    <path d="M62 100 q12 14 24 0" stroke="#2a1740" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <!-- sparkle -->
+    <path d="M168 30 l6 14 14 6 -14 6 -6 14 -6 -14 -14 -6 14 -6z" fill="#FFD36E" opacity="0.9"/>
+  </g>
+
+  <!-- text -->
+  <g transform="translate(340,0)">
+    <text x="0" y="140" font-size="82" font-weight="800" fill="url(#pp-title)">PixelPal</text>
+    <text x="4" y="188" font-size="27" fill="#EBD9FF" opacity="0.92">一只住在你桌面的像素小宠物 — 永远置顶，永远陪伴</text>
+    <text x="4" y="222" font-size="19" fill="#B79AD9">A pixel-art desktop pet · FSM + behavior-tree AI · blind-box breeds</text>
+    <!-- chips -->
+    <g font-size="17" font-weight="600">
+      <rect x="4" y="244" width="118" height="34" rx="17" fill="#ffffff" opacity="0.10"/>
+      <text x="63" y="266" fill="#FFE0AE" text-anchor="middle">Electron</text>
+      <rect x="132" y="244" width="130" height="34" rx="17" fill="#ffffff" opacity="0.10"/>
+      <text x="197" y="266" fill="#FFE0AE" text-anchor="middle">TypeScript</text>
+      <rect x="272" y="244" width="150" height="34" rx="17" fill="#ffffff" opacity="0.10"/>
+      <text x="347" y="266" fill="#FFE0AE" text-anchor="middle">GIF recording</text>
+      <rect x="432" y="244" width="176" height="34" rx="17" fill="#ffffff" opacity="0.10"/>
+      <text x="520" y="266" fill="#FFE0AE" text-anchor="middle">weather-aware</text>
+    </g>
+  </g>
+</svg>
