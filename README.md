@@ -1,3 +1,5 @@
+<p align="center"><img src="docs/banner.svg" alt="PixelPal banner" width="100%"></p>
+
 # PixelPal · 可爱小宠物 🐾
 
 > A pixel-art desktop virtual pet that lives on your Windows desktop — always on top, always by your side.
