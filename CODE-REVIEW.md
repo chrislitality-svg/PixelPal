@@ -21,10 +21,10 @@ The codebase is well-structured, uses parameterized SQL throughout, and correctl
 
 **File:Line:** `src/main/grsai.ts:27`  
 **Severity:** Critical — secret exposure  
-**Why:** `'sk-e89bc4c6f58f4b9eb5dcb8ec1237bf0a'` is a raw API key baked into source. It will be distributed inside the asar archive to every user. Anyone can extract it with `npx asar extract app.asar`. The key is sent in every `Authorization: Bearer` header to `grsaiapi.com` and `grsai.dakka.com.cn`.  
+**Why:** `'sk-****（已作废）'` is a raw API key baked into source. It will be distributed inside the asar archive to every user. Anyone can extract it with `npx asar extract app.asar`. The key is sent in every `Authorization: Bearer` header to `grsaiapi.com` and `grsai.dakka.com.cn`.  
 **Fix diff:**
 ```diff
--const KEY = process.env.IMAGE_GEN_GRSAI_API_KEY || 'sk-e89bc4c6f58f4b9eb5dcb8ec1237bf0a';
+-const KEY = process.env.IMAGE_GEN_GRSAI_API_KEY || 'sk-****（已作废）';
 +const KEY = process.env.IMAGE_GEN_GRSAI_API_KEY;
 +if (!KEY) throw new Error('IMAGE_GEN_GRSAI_API_KEY environment variable is required');
 ```

@@ -1,6 +1,7 @@
+param([string]$Source = (Join-Path $PSScriptRoot 'icon-source.png'))   # 256x256 以上的源图
 Add-Type -AssemblyName System.Drawing
 
-$src = [System.Drawing.Image]::FromFile('C:\Users\Administrator\.qoderworkcn\workspace\mqexpwom1qyautw7\vibe_images\pixelpal-icon_1781587895.png')
+$src = [System.Drawing.Image]::FromFile($Source)
 
 # Create 256x256 for ICO
 $bmp256 = New-Object System.Drawing.Bitmap 256, 256
@@ -38,7 +39,7 @@ $bw.Write($pngBytes)
 
 # Save ICO
 $icoBytes = $ico.ToArray()
-[System.IO.File]::WriteAllBytes('C:\Users\Administrator\.qoderworkcn\workspace\mqexpwom1qyautw7\PixelPal\build\icon.ico', $icoBytes)
+[System.IO.File]::WriteAllBytes((Join-Path $PSScriptRoot 'build\icon.ico'), $icoBytes)
 Write-Output ("ICO created: " + $icoBytes.Length + " bytes")
 
 # Create 32x32 tray icon
@@ -48,7 +49,7 @@ $g32.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQuali
 $g32.DrawImage($src, 0, 0, 32, 32)
 $g32.Dispose()
 
-$trayDir = 'C:\Users\Administrator\.qoderworkcn\workspace\mqexpwom1qyautw7\PixelPal\assets\icons'
+$trayDir = (Join-Path $PSScriptRoot 'assets\icons')
 if (-not (Test-Path $trayDir)) { New-Item -ItemType Directory -Path $trayDir -Force | Out-Null }
 $bmp32.Save((Join-Path $trayDir 'tray-icon.png'), [System.Drawing.Imaging.ImageFormat]::Png)
 Write-Output "Tray icon created: 32x32"
